@@ -93,6 +93,28 @@
 						<button type="submit">Start Quiz</button>
 					</form>
 				</div>
+
+
+				<div class="container">
+					<h1>Teacher Assigned Quiz</h1>
+					<form id="teacher-category-form">
+						<label for="category-select">Choose a Category:</label>
+						<select id="teacher-category-select">
+							<?php
+							foreach ($category as $row){
+
+							?>
+							<option value="<?= $row->name?>"><?= $row->name?></option>
+
+							<?php } ?>
+
+							<!-- Add more categories as needed -->
+						</select>
+						<button type="submit">Start Quiz</button>
+					</form>
+				</div>
+
+
 			</div>
 			<!-- / Content -->
 
@@ -139,6 +161,22 @@
 		}, 500);
 
 	});
+
+
+	document.getElementById('teacher-category-form').addEventListener('submit', function(event) {
+		event.preventDefault();
+
+		const selectedCategory = document.getElementById('teacher-category-select').value;
+
+		// Add a class to trigger an animation
+		document.querySelector('.container').classList.add('fadeOut');
+		setTimeout(() => {
+			// Redirect after animation
+			window.location.href = `<?= base_url('index.php/welcome/teacherquizView')?>?category=${selectedCategory}`;
+		}, 500);
+
+	});
+
 
 </script>
 

@@ -109,7 +109,6 @@
 					</div>
 					<!-- /Logo -->
 					<h4 class="mb-2">Adventure starts here 🚀</h4>
-					<p class="mb-4">Make your app management easy and fun!</p>
 
 					<form id="formAuthentication2" class="mb-3" method="post"  >
 						<div class="mb-3">

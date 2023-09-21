@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 class Welcome extends CI_Controller
 {
@@ -8,6 +8,7 @@ class Welcome extends CI_Controller
 	{
 		parent::__construct();
 		$this->load->helper(array('form', 'url'));
+		$this->load->library('pdf_processing');
 	}
 
 	public function index()
@@ -283,6 +284,54 @@ class Welcome extends CI_Controller
 		}
 	}
 
+	function teacherquizView()
+	{
+		if ($_SESSION['name']) {
+			$category = $_GET['category'];
+
+
+			$data['category'] = $_GET['category'];
+
+
+			$this->load->view('template.php');
+			$this->load->view('sidebar.php');
+			$this->load->view('teacherquiz.php', $data);
+
+		} else {
+			redirect($this->index());
+		}
+	}
+
+	public function getCategoryQuiz()
+	{
+		$category = $_POST['category'];
+		$sql = "select * from custom_quiz_json order by id desc limit 1";
+		$result = $this->db->query($sql)->row();
+
+		$originalData = json_decode($result->data, true);
+//		$originalData = $result->data;
+
+		$newData = ["questions" => []];
+
+		foreach ($originalData as $item) {
+			$newItem = [
+				"id" => $item["index"],
+				"question" => $item["output"],
+				"video_link" => $item["video_link"],
+				"category" => $category,
+				"answer" => $item["correct_answer"],
+				"choices" => array_column($item["options"], "choice"),
+			];
+			$newData["questions"][] = $newItem;
+		}
+
+
+		echo json_encode($newData, true);
+
+
+	}
+
+
 	function save_statistics()
 	{
 
@@ -291,6 +340,20 @@ class Welcome extends CI_Controller
 
 		$this->db->insert('quizstats', $quizData);
 
+
+	}
+	function saveCategory()
+	{
+
+
+		$category = $this->input->post('category');
+
+		$data['name'] = $category;
+		$data['userID'] = $_SESSION['userID'];
+
+
+		$this->db->insert('quizcategory', $data);
+echo 1;
 
 	}
 
@@ -379,10 +442,15 @@ class Welcome extends CI_Controller
 
 	function getQuizCategoryView()
 	{
+
+		$sql = "select * from quizcategory";
+		$result = $this->db->query($sql);
+		$data["category"] = $result->result();
+
 		if ($_SESSION['name']) {
 			$this->load->view('template.php');
 			$this->load->view('sidebar.php');
-			$this->load->view('quizCategory.php');
+			$this->load->view('quizCategory.php', $data);
 
 		} else {
 			redirect($this->index());
@@ -625,17 +693,22 @@ ORDER BY
 	public function generateQuizView()
 	{
 
+		$sql = "select * from quizcategory where userID = ".$_SESSION['userID'];
+		$result = $this->db->query($sql);
+		$data['category']= $result->result();
+
 		$this->load->view('template.php');
 		$this->load->view('sidebar.php');
-		$this->load->view('generateQuizView.php');
+		$this->load->view('generateQuizView.php',$data);
 
 	}
 
 	public function save_quiz_data()
 	{
-		$post_data = file_get_contents('php://input');
+//		$post_data = file_get_contents('php://input');
 
-		if (!empty($post_data)) {
+
+		if (!empty($_POST)) {
 			$user_id = isset($_SESSION['userID']) ? $_SESSION['userID'] : null; // Get user ID from session
 
 			// Other details
@@ -645,10 +718,11 @@ ORDER BY
 			if ($user_id !== null) {
 
 				$insert_data = array(
-					'data' => $post_data,
+					'data' => $_POST['updatedQuizData'],
 					'userID' => $user_id,
-					'category' => $category,
-					'status' => $status
+					'category' => $_POST['quizCategory'],
+					'status' => $status,
+					'name' => $_POST['quizName']
 				);
 
 				$this->db->insert('custom_quiz_json', $insert_data);
@@ -658,56 +732,94 @@ ORDER BY
 		}
 	}
 
-	public function getNewStudents(){
-$teacherId = $_SESSION['userID'];
+	public function getNewStudents()
+	{
+		$teacherId = $_SESSION['userID'];
 		$this->db->select('*');
 		$this->db->from('user');
 		$this->db->where('userType', 'Student');
 		$this->db->where("id NOT IN (SELECT studentID FROM student_teacher WHERE teacherID = $teacherId)");
 		$query = $this->db->get();
-		$students =  $query->result();
+		$students = $query->result();
 
 		echo json_encode($students);
 
 
 	}
-public function addStudent(){
 
-$studentID = $this->input->post('selectedStudents');
+	public function addStudent()
+	{
 
-$data['studentID'] = $studentID;
-$data['teacherID'] =$_SESSION['userID'];
+		$studentID = $this->input->post('selectedStudents');
 
-$this->db->insert('student_teacher',$data);
+		$data['studentID'] = $studentID;
+		$data['teacherID'] = $_SESSION['userID'];
 
-echo 1;
+		$this->db->insert('student_teacher', $data);
 
-
-
-
-
-}
-public function quizList(){
-
-	if ($_SESSION['name']) {
-
-		$sql = 'SELECT * FROM custom_quiz_json where  userID = ' . $_SESSION['userID'];
-
-		$result = $this->db->query($sql);
-		$quiz = $result->result();
-		$data['quiz'] = $quiz;
+		echo 1;
 
 
-		$this->load->view('template.php');
-		$this->load->view('sidebar.php');
-		$this->load->view('customQuiz.php', $data);
-
-	} else {
-		redirect($this->index());
 	}
 
+	public function quizList()
+	{
 
-}
+		if ($_SESSION['name']) {
 
+			$sql = 'SELECT * FROM custom_quiz_json where  userID = ' . $_SESSION['userID'] . ' order by id desc ';
+
+			$result = $this->db->query($sql);
+			$quiz = $result->result();
+			$data['quiz'] = $quiz;
+
+
+			$this->load->view('template.php');
+			$this->load->view('sidebar.php');
+			$this->load->view('customQuiz.php', $data);
+
+		} else {
+			redirect($this->index());
+		}
+
+
+	}
+
+	public function process_pdf()
+	{
+		$config['upload_path'] = './uploads/'; // Define your upload directory
+		$config['allowed_types'] = 'pdf';
+		$config['max_size'] = 2048; // 2MB max file size (adjust as needed)
+
+		$this->load->library('upload', $config);
+
+		if (!$this->upload->do_upload('pdf_file')) {
+			$error = $this->upload->display_errors();
+			$this->session->set_flashdata('error', $error);
+			redirect('pdfcontroller');
+		} else {
+			$data = $this->upload->data();
+			$pdfText = $this->pdf_processing->pdf2text($data['full_path']);
+			unlink($data['full_path']); // Remove the uploaded PDF file
+			echo json_encode($pdfText);
+
+//			$this->load->view('pdf_result', ['pdfText' => $pdfText]);
+		}
+	}
+
+	public function getCategoresList()
+	{
+		if ($_SESSION['name']) {
+			$sql = 'SELECT * FROM quizCategory where  userID = ' . $_SESSION['userID'] . ' order by id desc ';
+			$result = $this->db->query($sql);
+			$quiz = $result->result();
+			$data['quiz'] = $quiz;
+			$this->load->view('template.php');
+			$this->load->view('sidebar.php');
+			$this->load->view('categories.php', $data);
+		} else {
+			redirect($this->index());
+		}
+	}
 
 }

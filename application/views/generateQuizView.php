@@ -10,7 +10,7 @@
 >
 <head>
 	<style>
-		#saveChanges {
+		#saveChangesFun {
 			display: none;
 		}
 		#loadingSpinner {
@@ -64,6 +64,11 @@
 									<div class="container mt-5">
 										<div class="row justify-content-center">
 											<div class="col-md-8">
+												<form id="pdfUploadForm" class="border p-4" enctype="multipart/form-data">
+													<input type="file" name="pdf_file" id="pdfFile" />
+
+													<input type="button" class="btn btn-primary" id="uploadButton" value="Upload and Process" />
+												</form>
 												<form id="textForm" class="border p-4">
 													<div class="mb-3">
 														<label for="text" class="form-label">Enter Text</label>
@@ -77,6 +82,7 @@
 										</div>
 									</div>
 
+									<div id="resultContainer"></div>
 									<div id="loadingSpinner" class="text-center mt-3">
 										<img src="<?=base_url('/assets/img/avatars/loadingImg.gif') ?>" alt="Loading..." />
 
@@ -94,7 +100,10 @@
 									</div>
 									<div class="card-body text-center">
 
-										<button id="saveChanges" class="btn btn-primary">Save Changes</button>
+										<button id="saveChangesFun" class="btn btn-primary" onclick="openModel()">Save</button>
+<!--										<button id="saveChanges" class="btn btn-primary" onclick="openModel()">Save Changes</button>-->
+
+
 									</div>
 
 
@@ -152,6 +161,48 @@
 </div>
 
 
+<!-- Modal for Quiz Name and Category -->
+<div class="modal fade" id="quizInfoModal" tabindex="-1" aria-labelledby="quizInfoModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="quizInfoModalLabel">Enter Quiz Details</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="quizInfoForm">
+					<div class="mb-3">
+						<label for="quizName" class="form-label">Quiz Name</label>
+						<input type="text" class="form-control" id="quizName" required>
+					</div>
+					<div class="mb-3">
+						<label for="quizCategory" class="form-label">Quiz Category</label>
+
+						<select id="quizCategory" class="form-control">
+							<?php
+							foreach ($category as $row){
+
+								?>
+								<option value="<?= $row->name?>"><?= $row->name?></option>
+
+							<?php } ?>
+
+						</select>
+
+<!--						<input type="text" class="form-control" id="quizCategory" required>-->
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-primary" id="saveChanges">Save</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Save Quiz button to trigger the modal -->
+
 
 
 </body>
@@ -162,7 +213,17 @@
 			showLoadingSpinner();
 			generateQuestions();
 		});
+
+
+
 	});
+
+	function openModel(){
+		$("#quizInfoModal").modal('toggle');
+
+	}
+
+
 	function showLoadingSpinner() {
 		$("#loadingSpinner").show();
 	}
@@ -173,7 +234,7 @@
 	function generateQuestions() {
 		var text = $("#text").val();
 	function showSaveChangesButton() {
-			$("#saveChanges").show();
+			$("#saveChangesFun").show();
 		}
 
 		$.ajax({
@@ -193,37 +254,39 @@
 					const questionBlock = document.createElement("div");
 					questionBlock.className = "question-block card mb-3";
 					questionBlock.innerHTML = `
-  <div class="card mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
-      <h5 class="mb-0">Question ${question.index}</h5>
-      <button class="btn btn-danger btn-sm remove-question-btn">Remove</button>
-    </div>
-    <div class="card-body">
-      <textarea class="form-control question-text mb-3" rows="3">${question.output}</textarea>
-      <form class="choices-form">
-        ${question.options
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+                <h5 class="mb-0">Question ${question.index}</h5>
+                <button class="btn btn-danger btn-sm remove-question-btn">Remove</button>
+            </div>
+            <div class="card-body">
+                <textarea class="form-control question-text mb-3" rows="3">${question.output}</textarea>
+                <div class="mb-3">
+                    <label for="videoLink" class="form-label">Video Link</label>
+                    <input type="text" class="form-control video-link" name="videoLink" placeholder="Enter video link...">
+                </div>
+                <form class="choices-form">
+                    ${question.options
 						.map(
 							(option, index) =>
 								`<div class="form-group">
-                <div class="input-group">
-                  <div class="input-group-prepend">
-                    <div class="input-group-text">
-                      <input type="radio" name="question-${question.index}" value="${option.choice}" ${
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <div class="input-group-text">
+                                                <input type="radio" name="question-${question.index}" value="${option.choice}" ${
 									option.choice === question.correct_answer ? "checked" : ""
 								}>
-                    </div>
-                  </div>
-                  <input type="text" class="form-control choice-text" value="${option.choice}">
-                </div>
-              </div>`
+                                            </div>
+                                        </div>
+                                        <input type="text" class="form-control choice-text" value="${option.choice}">
+                                    </div>
+                                </div>`
 						)
 						.join("")}
-
-      </form>
-    </div>
-  </div>
-`;
-
+                </form>
+            </div>
+        </div>
+    `;
 
 					// Attach event listener to the Remove button
 					const removeQuestionBtn = questionBlock.querySelector(".remove-question-btn");
@@ -236,12 +299,16 @@
 
 
 
+
 // Populate the quizContainer with question blocks
 				quizData.forEach(question => {
 					const questionBlock = createQuestionBlock(question);
 					quizContainer.appendChild(questionBlock);
 				});
-				saveChangesButton.addEventListener("click", saveChanges);
+
+
+
+				 saveChangesButton.addEventListener("click", saveChanges);
 
 				function saveChanges() {
 					const updatedQuizData = [];
@@ -250,12 +317,14 @@
 					const questionBlocks = document.querySelectorAll(".question-block");
 					questionBlocks.forEach((block, index) => {
 						const questionText = block.querySelector(".question-text").value;
+						const videoLink = block.querySelector(".video-link").value; // Get the video link
 						const choicesForm = block.querySelector(".choices-form");
 						const choices = Array.from(choicesForm.querySelectorAll(".choice-text")).map(choice => choice.value);
 						const correctAnswer = choicesForm.querySelector("input[name^='question']:checked").value;
 
 						updatedQuizData.push({
 							output: questionText,
+							video_link: videoLink, // Include the video link
 							options: choices.map((choice, i) => ({ choice: choice, letter: String.fromCharCode(97 + i) })),
 							correct_answer: correctAnswer,
 							index: index + 1
@@ -264,20 +333,27 @@
 
 					console.log(updatedQuizData);
 
-
+					var quizName = $('#quizName').val();
+					var quizCategory = $('#quizCategory').val();
 					$.ajax({
 						url: "<?= base_url('index.php/welcome/save_quiz_data')?>", // Update the URL to match your controller's method
 						type: "POST",
-						data: JSON.stringify(updatedQuizData),
-						contentType: "application/json",
+						data: {
+							quizCategory: quizCategory,
+							quizName: quizName,
+							updatedQuizData: JSON.stringify(updatedQuizData)
+						},
+
 						success: function(response) {
-							console.log("Quiz data saved successfully:", response);
+							$("#quizInfoModal").modal('toggle');
+							$.notify("Quiz Saved Successfully!", "success");
 						},
 						error: function(error) {
-							console.error("Error saving quiz data:");
+							$.notify("Something went wrong", "error");
 						}
 					});
-				 }
+				}
+
 
 // Add event listener to update correct answer when option value changes
 				document.addEventListener("change", function(event) {
@@ -292,7 +368,37 @@
 			}
 		});
 	}
+	$("#uploadButton").on("click", function () {
+		// Get the selected file
+		var fileInput = document.getElementById("pdfFile");
+		var file = fileInput.files[0];
 
+		if (file) {
+			// Create a FormData object to send the file
+			var formData = new FormData();
+			formData.append("pdf_file", file);
+
+			// Make an AJAX request
+			$.ajax({
+				url: "<?php echo base_url('index.php/welcome/process_pdf'); ?>",
+				type: "POST",
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function (response) {
+					response = JSON.parse(response);
+					// Display the response in the result container
+					$("#text").val(response);
+				},
+				error: function (xhr, status, error) {
+					// Handle errors
+					$("#resultContainer").html("Error: " + xhr.responseText);
+				},
+			});
+		} else {
+			$("#resultContainer").html("Please select a PDF file.");
+		}
+	});
 
 </script>
 

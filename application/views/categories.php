@@ -36,7 +36,7 @@
 				<!-- Content -->
 
 				<div class="container-xxl flex-grow-1 container-p-y">
-					<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light"></span> Custom Quizes List </h4>
+					<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light"></span> Quiz Categories </h4>
 
 					<div class="row">
 						<div class="col-md-12">
@@ -49,7 +49,7 @@
 										<div class="d-flex justify-content-center row">
 
 											<div class="container-xxl flex-grow-1 container-p-y">
-												<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light"><a href="<?= base_url('index.php/welcome/generateQuizView') ?>" class="btn btn-primary float-end">Add New</a></span></h4>
+												<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light"><button  id="addNewCategorybtn" onclick="openModelAddCategory();" class="btn btn-primary float-end">Add New</button></span></h4>
 
 												<!-- Basic Bootstrap Table -->
 												<div class="card" style="margin-top: 58px;">
@@ -60,10 +60,7 @@
 															<tr>
 																<th>ID</th>
 																<th>Name</th>
-																<th>Category</th>
-																<th>Status</th>
 																<th>Created Date</th>
-
 																<th>Actions</th>
 															</tr>
 															</thead>
@@ -84,17 +81,11 @@
 																	<td>
 																		<?= $quiz->name ?>
 																	</td>
-																	<td>
-																		<?= $quiz->category ?>
-																	</td>
-																	<td>
-																		<?= $quiz->status = 1 ? 'Active' : 'In Active' ?>
-																	</td>
+
 																	<td>
 																		<input type="hidden" id="quizId" value="<?= $quiz->id ?>">
-																		<input type="hidden" id="quizData" value='<?= json_encode($quiz->data) ?>'>
 
-																		<?= $quiz->created_at?>
+																		<?= $quiz->createdDate?>
 																	</td>
 																	<td>
 																		<div class="dropdown">
@@ -103,7 +94,7 @@
 																			</button>
 																			<div class="dropdown-menu">
 
-																					<a  class="dropdown-item edit-button" data-bs-toggle="modal" data-bs-target="#editModal" ><i class="bx bx-trash me-1"></i>Edit</a>
+																				<a  class="dropdown-item edit-button" data-bs-toggle="modal" data-bs-target="#editModal" ><i class="bx bx-trash me-1"></i>Edit</a>
 
 
 																				<a class="dropdown-item" href="javascript:void(0);"
@@ -161,21 +152,22 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+<div class="modal fade" id="addNewCategory" tabindex="-1" aria-labelledby="addNewCategory" aria-hidden="true">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="editModalLabel">Edit Quiz Data</h5>
+				<h5 class="modal-title" id="editModalLabel">Add Category</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				<div id="questions-container"></div>
-				<!-- Form or content to display quiz data goes here -->
-				<!-- You can use PHP to populate the form fields with the data -->
+				<div class="mb-3">
+					<label for="quizCategory" class="form-label">Quiz Category</label>
+					<input type="text" class="form-control" id="quizCategory" required>
+				</div>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-				<!-- Add a button for saving changes if needed -->
+				<button type="button" class="btn btn-primary" onclick="saveCategory();" id="saveChanges">Save</button>
 			</div>
 		</div>
 	</div>
@@ -186,89 +178,51 @@
 <div class="layout-overlay layout-menu-toggle"></div>
 </div>
 
+
+
+
+</body>
 <script>
-
-	$(document).ready(function() {
+	$(document).ready(function () {
 		$('#students_table').DataTable();
-
-
-		$('.edit-button').click(function () {
-			// Retrieve data from hidden input fields
-			const quizId = $('#quizId').val();
-			const quizDataJson = $('#quizData').val();
-
-			try {
-				// Parse quizDataJson into an array of objects
-				const quizData1 = JSON.parse(quizDataJson);
-				const quizData = JSON.parse(quizData1);
-
-				if (Array.isArray(quizData)) {
-					quizData.forEach(question => {
-						const questionBlock = document.createElement("div");
-						questionBlock.className = "question-block card mb-3";
-						questionBlock.innerHTML = `
-            <div class="card mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
-                    <h5 class="mb-0">Question ${question.index}</h5>
-<!--                    <button class="btn btn-danger btn-sm remove-question-btn">Remove</button>-->
-
-                </div>
-
-                <div class="card-body">
-              <div class="mb-3" style="margin-top: 8px">
-            <label for="video-link" class="form-label">Video Link</label>
-            <input type="text" class="form-control video-link" value="${question.video_link}">
-        </div>
-                    <textarea class="form-control question-text mb-3" rows="3">${question.output}</textarea>
-                    <form class="choices-form">
-                        ${question.options
-							.map(
-								(option, index) =>
-									`<div class="form-group">
-                                        <div class="input-group">
-                                            <div class="input-group-prepend">
-                                                <div class="input-group-text">
-                                                    <input type="radio" name="question-${question.index}" value="${option.choice}" ${
-										option.choice === question.correct_answer ? "checked" : ""
-									}>
-                                                </div>
-                                            </div>
-                                            <input type="text" class="form-control choice-text" value="${option.choice}">
-                                        </div>
-                                    </div>`
-							)
-							.join("")}
-                    </form>
-                </div>
-            </div>
-        `;
-
-						// Append the question block to a container element in your HTML
-						const container = document.getElementById("questions-container");
-						container.appendChild(questionBlock);
-					});
-
-					// Show the modal
-					$('#editModal').modal('show');
-				} else {
-					console.error('quizData is not an array:', quizData);
-				}
-			} catch (error) {
-				// Handle JSON parsing errors here
-				console.error('Error parsing JSON:', error);
-			}
-		});
 
 
 	});
 
+	function openModelAddCategory() {
+		$('#addNewCategory').modal('toggle');
+
+
+	}
+	function saveCategory(){
+
+		var category = $("#quizCategory").val();
+		if (category == ''){
+			$.notify('Enter a name' , "error");
+				return;
+		}
+		$.ajax({
+			url: '<?= base_url("index.php/welcome/saveCategory"); ?>',
+			type: 'POST',
+			data: { category: category }, // Send the selected category
+			success: function (data) {
+if (data == 1){
+
+	$.notify('Category saved!' , "success");
+	$('#addNewCategory').modal('toggle');
+}
+
+			},
+			error: function (xhr, status, error) {
+				$.notify('Error' , "error");
+			}
+		});
+
+
+	}
 
 
 
 </script>
-
-
-</body>
-
 
 </html>

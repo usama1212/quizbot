@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 <html
@@ -12,8 +11,8 @@
 <head>
 	<style>
 
-		body{
-			background-color:#eee;
+		body {
+			background-color: #eee;
 		}
 
 		label.radio {
@@ -96,7 +95,8 @@
 				<!-- Content -->
 
 				<div class="container-xxl flex-grow-1 container-p-y">
-					<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light"></span> Attempt quiz / <?= $category?></h4>
+					<h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light"></span> Attempt quiz
+						/ <?= $category ?></h4>
 
 					<div class="row">
 						<div class="col-md-12">
@@ -112,83 +112,79 @@
 												<div id="chat-container">
 													<!-- Chat messages will be displayed here -->
 												</div>
-												<input type="text" id="user-input" class="user-input" placeholder="Type your answer here">
+												<input type="text" id="user-input" class="user-input"
+													   placeholder="Type your answer here">
 												<button id="send-btn" class="btn btn-primary mt-2">Send</button>
-<!--												<button id="reattempt-btn" >Reattempt Quiz</button>-->
-<!--												<a href="--><?php //= base_url(); ?><!--"  id="return-dashboard-btn">Return to Dashboard</a>-->
+												<!--												<button id="reattempt-btn" >Reattempt Quiz</button>-->
+												<!--												<a href="-->
+												<?php //= base_url(); ?><!--"  id="return-dashboard-btn">Return to Dashboard</a>-->
 
-											</div>
 											</div>
 										</div>
 									</div>
 								</div>
-
-								<hr class="my-0" />
-
-								<!-- /Account -->
 							</div>
 
+							<hr class="my-0"/>
+
+							<!-- /Account -->
 						</div>
+
 					</div>
 				</div>
-				<!-- / Content -->
-
-				<!-- Footer -->
-				<footer class="content-footer footer bg-footer-theme">
-					<div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
-						<div class="mb-2 mb-md-0">
-							©
-							<script>
-								document.write(new Date().getFullYear());
-							</script>
-							, made by
-							<a href="https://  QuizBot.com" target="_blank" class="footer-link fw-bolder">  QuizBot</a>
-						</div>
-
-					</div>
-				</footer>
-				<!-- / Footer -->
-
-				<div class="content-backdrop fade"></div>
 			</div>
-			<!-- Content wrapper -->
-		</div>
-		<!-- / Layout page -->
-	</div>
+			<!-- / Content -->
 
-	<!-- Overlay -->
-	<div class="layout-overlay layout-menu-toggle"></div>
+			<!-- Footer -->
+			<footer class="content-footer footer bg-footer-theme">
+				<div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+					<div class="mb-2 mb-md-0">
+						©
+						<script>
+							document.write(new Date().getFullYear());
+						</script>
+						, made by
+						<a href="https://  QuizBot.com" target="_blank" class="footer-link fw-bolder"> QuizBot</a>
+					</div>
+
+				</div>
+			</footer>
+			<!-- / Footer -->
+
+			<div class="content-backdrop fade"></div>
+		</div>
+		<!-- Content wrapper -->
+	</div>
+	<!-- / Layout page -->
+</div>
+
+<!-- Overlay -->
+<div class="layout-overlay layout-menu-toggle"></div>
 </div>
 
 
-
-
 </body>
-
 <script>
-	$( document ).ready(function() {
+	$(document).ready(function () {
 		uploadFile();
-		quizData =[];
+		quizData = [];
+
 		function uploadFile() {
-
-			var category = '<?= $category?>';
-
+			var category = '<?= $category ?>';
 			$.ajax({
-				url: '<?= base_url("index.php/welcome/readJson1"); ?>',
+				url: '<?= base_url("index.php/welcome/getCategoryQuiz"); ?>',
 				type: 'POST',
 				data: { category: category }, // Send the selected category
-
 				success: function (data) {
 					quizData = JSON.parse(data);
-					console.log(quizData);
-					loadQuestion();
+					displayMessage('How many questions would you like to answer?', 'bot');
+
 				},
 				error: function (xhr, status, error) {
 					$.notify('Error uploading image: ' + xhr.responseText, "error");
 				}
 			});
 		}
-
 	});
 
 	let shuffledQuestions = [];
@@ -245,7 +241,7 @@
 					document.getElementById('chat-container').appendChild(videoLink);
 				}
 				if (response.suggestions) {
-					displayMessage('AI Suggestions for the answer:', 'bot');
+					displayMessage('Suggestions:', 'bot');
 					displayMessage(response.suggestions, 'bot-suggestions');
 				}
 				if (response.relevant_data && response.relevant_data.length > 0) {
@@ -264,8 +260,9 @@
 					document.getElementById('chat-container').appendChild(youtubeList);
 
 				}
+
 				if (response.relevant_websites && response.relevant_websites.length > 0) {
-					displayMessage('Learn From Websites:', 'bot');
+					displayMessage('Relevant Websites:', 'bot');
 					const websitesList = document.createElement('ul');
 					response.relevant_websites[0].websites.forEach((website) => {
 						const listItem = document.createElement('li');
@@ -277,7 +274,6 @@
 						websitesList.appendChild(listItem);
 					});
 					document.getElementById('chat-container').appendChild(websitesList);
-
 				}
 
 
@@ -292,7 +288,7 @@
 
 	function loadNextQuestion() {
 		currentQuestionIndex++;
-		console.log("here")
+console.log("here")
 		if (currentQuestionIndex < numQuestions) {
 			const question = shuffledQuestions[currentQuestionIndex];
 			startTime = new Date(); // Start timer for this question
@@ -381,6 +377,10 @@
 	});
 </script>
 
+
+
+
+
 <style>
 	.chat-container {
 		max-width: 400px;
@@ -391,6 +391,7 @@
 		background-color: #f8f9fa;
 		box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.2);
 	}
+
 	.message {
 		padding: 5px;
 		margin: 5px;
@@ -403,6 +404,7 @@
 		text-align: right;
 		background-color: #c5e5ff;
 	}
+
 	.user-message {
 		background-color: #e2e3e5;
 		text-align: right;
@@ -427,6 +429,7 @@
 		padding: 8px;
 		box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
 	}
+
 	.bot {
 		text-align: left;
 		background-color: #ffecd0;

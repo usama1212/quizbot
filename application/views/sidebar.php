@@ -105,8 +105,14 @@
 		<?php if ($_SESSION['userType'] == 'Teacher') { ?>
 			<li class="menu-item <?= current_url() === base_url('index.php/welcome/quizList') ? 'active' : '' ?>">
 				<a href="<?= base_url('index.php/welcome/quizList') ?>" class="menu-link">
-					<i class="menu-icon tf-icons bx bx-plus-circle"></i>
+					<i class="menu-icon tf-icons bx bx-list-ul"></i>
 					<div data-i18n="Analytics">Quiz</div>
+				</a>
+			</li>
+			<li class="menu-item <?= current_url() === base_url('index.php/welcome/getCategoresList') ? 'active' : '' ?>">
+				<a href="<?= base_url('index.php/welcome/getCategoresList') ?>" class="menu-link">
+					<i class="menu-icon tf-icons bx bx-category"></i>
+					<div data-i18n="Analytics">Quiz Categories</div>
 				</a>
 			</li>
 		<?php } ?>
